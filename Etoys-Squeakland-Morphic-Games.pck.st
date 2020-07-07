@@ -1,7 +1,8 @@
-'From Cuis 5.0 [latest update: #4241] on 7 July 2020 at 2:21:39 pm'!
-'Description '!
-!provides: 'Etoys-Squeakland-Morphic-Games' 1 0!
+'From Cuis 5.0 [latest update: #4241] on 7 July 2020 at 2:46:34 pm'!
+'Description Port of FreeCell from Squeak'!
+!provides: 'Etoys-Squeakland-Morphic-Games' 1 1!
 !requires: 'Cuis-Base' 50 4241 nil!
+!requires: 'SqueakCompatibility' 1 31 nil!
 !requires: 'Compression' 1 27 nil!
 !requires: 'Graphics-Files-Additional' 1 23 nil!
 SystemOrganization addCategory: #'Etoys-Squeakland-Morphic-Games'!
@@ -170,6 +171,20 @@ mouseDown: evt
 
 	evt hand waitForClicksOrDrag: self event: evt selectors: { #click:. #doubleClick:. #firstClickTimedOut:. nil} threshold: 5! !
 
+!PlayingCardMorph class methodsFor: 'instance creation' stamp: 'KenD 7/7/2020 13:13:43'!
+the: faceNumber of: suitOrNumber
+	"CardNumber is 1..13"
+"
+	(PlayingCardMorph the: 3 of: #spades) openInWorld.
+"
+	| suitNumber | 
+	suitNumber :=  (suitOrNumber isNumber)
+				ifTrue: [suitOrNumber]
+				ifFalse: [#(clubs diamonds hearts spades) indexOf: suitOrNumber].
+	^ self new cardNumber: faceNumber 
+			suitNumber: suitNumber 
+			cardForm: (FormsArray at: ((faceNumber - 1) * 4) + suitNumber)! !
+
 !PlayingCardMorph class methodsFor: 'class initialization' stamp: 'KenD 7/7/2020 12:53:51'!
 initialize
 "
@@ -191,20 +206,6 @@ initializeFromPNG
 	FormsArray 
 		at: 53 
 		put: ((Form fromFileNamed: (imageDirNamePrefix , 'back.png')) asFormOfDepth: 32)! !
-
-!PlayingCardMorph class methodsFor: 'instance creation' stamp: 'KenD 7/7/2020 13:13:43'!
-the: faceNumber of: suitOrNumber
-	"CardNumber is 1..13"
-"
-	(PlayingCardMorph the: 3 of: #spades) openInWorld.
-"
-	| suitNumber | 
-	suitNumber :=  (suitOrNumber isNumber)
-				ifTrue: [suitOrNumber]
-				ifFalse: [#(clubs diamonds hearts spades) indexOf: suitOrNumber].
-	^ self new cardNumber: faceNumber 
-			suitNumber: suitNumber 
-			cardForm: (FormsArray at: ((faceNumber - 1) * 4) + suitNumber)! !
 
 !PlayingCardMorph class methodsFor: 'access' stamp: 'KenD 7/7/2020 13:19:46'!
 cardSize
@@ -558,4 +559,9 @@ values
 includeInNewMorphMenu
 
 	^false! !
+
+!String methodsFor: '*etoys-squeakland-morphic-games' stamp: 'KenD 7/7/2020 14:43:48'!
+translated
+	"NB: No translation"
+	^self! !
 PlayingCardMorph initialize!
