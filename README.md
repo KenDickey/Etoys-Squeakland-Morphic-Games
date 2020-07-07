@@ -1,3 +1,3 @@
-Port of Squeak's Klondike Solitare game to Cuis to test PackageEnvironments.
+Port of Squeak's FreeCell Solitare game to Cuis to test PackageEnvironments.
 
 STATUS: just started
