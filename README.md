@@ -13,6 +13,8 @@ Environment fromFeature: 'Morphic-Games-Solitaire'.
 Smalltalk at: #Klondike put: nil.
 Smalltalk at: #FreeCell put: nil.
 Smalltalk flushClassNameCache.
+Feature require: 'Morphic-Misc1'.
+Feature require: 'SqueakCompatibility'.
 
 "Feature w Squeak FreeCell"
 Feature require: 'Etoys-Squeakland-Morphic-Games'.
