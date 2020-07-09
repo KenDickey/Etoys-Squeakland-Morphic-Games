@@ -10,8 +10,8 @@ ChangeSet fileIn: (DirectoryEntry smalltalkImageDirectory parent // 'PackageEnvi
 Feature require: 'System-Environments'.
 Feature require: 'Morphic-Games-Solitaire'.
 Environment fromFeature: 'Morphic-Games-Solitaire'.  
-"Klondike and FreeCell classes as to be exported from Environments
- undo this."
+"Klondike and FreeCell classes ask to be exported from Environments.
+ Undo this."
 Smalltalk removeKey: #Klondike ifAbsent: [nil].
 Smalltalk removeKey: #FreeCell ifAbsent: [nil].
 Smalltalk flushClassNameCache.
