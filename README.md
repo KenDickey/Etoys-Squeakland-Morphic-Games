@@ -10,11 +10,17 @@ ChangeSet fileIn: (DirectoryEntry smalltalkImageDirectory parent // 'PackageEnvi
 Feature require: 'System-Environments'.
 Feature require: 'Morphic-Games-Solitaire'.
 Environment fromFeature: 'Morphic-Games-Solitaire'.  
-Smalltalk at: #Klondike put: nil.
-Smalltalk at: #FreeCell put: nil.
+"Klondike and FreeCell classes as to be exported from Environments
+ undo this."
+Smalltalk removeKey: #Klondike ifAbsent: [nil].
+Smalltalk removeKey: #FreeCell ifAbsent: [nil].
 Smalltalk flushClassNameCache.
+
+"These are already required 
+  by Etoys-Squeakland-Morphic-Games:
 Feature require: 'Morphic-Misc1'.
 Feature require: 'SqueakCompatibility'.
+"
 
 "Feature w Squeak FreeCell"
 Feature require: 'Etoys-Squeakland-Morphic-Games'.
