@@ -1,6 +1,6 @@
-'From Cuis 5.0 [latest update: #4241] on 9 July 2020 at 2:36:09 pm'!
+'From Cuis 5.0 [latest update: #4241] on 11 July 2020 at 2:48:12 pm'!
 'Description Port of FreeCell from Squeak'!
-!provides: 'Etoys-Squeakland-Morphic-Games' 1 7!
+!provides: 'Etoys-Squeakland-Morphic-Games' 1 9!
 !requires: 'Cuis-Base' 50 4241 nil!
 !requires: 'SqueakCompatibility' 1 31 nil!
 !requires: 'Compression' 1 27 nil!
@@ -148,6 +148,11 @@ cardNumber: c suitNumber: s cardForm: aForm
 	suitNumber := s.
 	self image: aForm! !
 
+!PlayingCardMorph methodsFor: 'access' stamp: 'KenD 7/11/2020 08:10:10'!
+pixelsPerOverlap
+	"Answer amount of card to show in columns"
+	^self height // 4! !
+
 !PlayingCardMorph methodsFor: 'access' stamp: 'djp 10/17/1999 18:37'!
 suit
 	^self class suits at: suitNumber! !
@@ -274,6 +279,11 @@ cardSize
 height
 	^ (FormsArray at: 1) height! !
 
+!PlayingCardMorph class methodsFor: 'access' stamp: 'KenD 7/11/2020 08:12:07'!
+pixelsPerOverlap
+	"Answer amount of card to show in columns"
+	^self height // 4! !
+
 !PlayingCardMorph class methodsFor: 'access' stamp: 'djp 10/15/1999 07:14'!
 suits
 	^ #(clubs diamonds hearts spades)! !
@@ -331,13 +341,13 @@ acceptCardSelector: aSymbolOrString
 
 	acceptCardSelector := self nilOrSymbol: aSymbolOrString.! !
 
-!PlayingCardDeck methodsFor: 'accessing' stamp: 'KenD 7/8/2020 14:08:45'!
+!PlayingCardDeck methodsFor: 'accessing' stamp: 'KenD 7/11/2020 08:13:48'!
 addCard: aPlayingCard
 
 	| newPos |
 	(self hasCards not)
 		ifTrue: [newPos := 0 @ 0]
-		ifFalse: [newPos := (0 @ (self pixelsPerOverlap * self numberOfCards))].
+		ifFalse: [newPos := (0 @ (self pixelsPerOverlap * self cards size))].
 	self addMorph: aPlayingCard.
 	aPlayingCard morphPosition: newPos.
 	self! !
@@ -384,6 +394,11 @@ layout: aSymbol
 !PlayingCardDeck methodsFor: 'accessing' stamp: 'djp 10/23/1999 22:44'!
 newSeed
 	seed := (1 to: 32000) atRandom! !
+
+!PlayingCardDeck methodsFor: 'accessing' stamp: 'KenD 7/11/2020 08:11:19'!
+pixelsPerOverlap
+
+	^PlayingCardMorph pixelsPerOverlap ! !
 
 !PlayingCardDeck methodsFor: 'accessing' stamp: 'djp 10/16/1999 20:05'!
 removeAllCards
@@ -690,7 +705,7 @@ newGame
 	self newGameNumber: nil.
 	state := #newGame! !
 
-!FreeCell methodsFor: 'actions' stamp: 'KenD 7/9/2020 14:31:26'!
+!FreeCell methodsFor: 'actions' stamp: 'KenD 7/11/2020 13:07:44'!
 newGameNumber: aSeedOrNil 
 	cardsRemainingDisplay value ~~ 0 ifTrue: [self gameLost].
 	cardsRemainingDisplay "flash: false; highlighted: false; value: 52."
@@ -699,7 +714,7 @@ newGameNumber: aSeedOrNil
 	"board handles nil case"
 	self board pickGame: aSeedOrNil.
 	"elapsedTimeDisplay reset; start."
-	gameNumberDisplay value: self currentGame! !
+	gameNumberDisplay contents: self currentGame asString! !
 
 !FreeCell methodsFor: 'actions' stamp: 'th 12/15/1999 15:05'!
 pickGame
@@ -803,20 +818,20 @@ buildButton: aButton target: aTarget label: aLabel selector: aSelector
 
 ! !
 
-!FreeCell methodsFor: 'private' stamp: 'KenD 7/9/2020 14:07:36'!
+!FreeCell methodsFor: 'private' stamp: 'KenD 7/11/2020 14:39:34'!
 wrapPanel: anLedPanel label: aLabel
 	"wrap an LED panel in an alignmentMorph with a label to its left"
 
 	| a |
-	a := AlignmentMorph newRow
+	a := AlignmentMorph newColumn
 		wrapCentering: #center; cellPositioning: #leftCenter;
 		hResizing: #shrinkWrap;
 		vResizing: #shrinkWrap;
 		"borderWidth: 0;
 		layoutInset: 5;"
 		color: Color transparent.
-	a addMorph: anLedPanel.
 	a addMorph: (StringMorph contents: aLabel). 
+	a addMorph: anLedPanel.
 	^ a
 ! !
 
@@ -871,7 +886,7 @@ defaultColor
 	"answer the default color/fill style for the receiver"
 	^ self colorNearTop! !
 
-!FreeCell methodsFor: 'initialization' stamp: 'dgd 3/7/2003 14:27'!
+!FreeCell methodsFor: 'initialization' stamp: 'KenD 7/11/2020 14:44:05'!
 initialize
 	"initialize the state of the receiver"
 	super initialize.
@@ -884,8 +899,9 @@ initialize
 	self vResizing: #shrinkWrap.
 	self hResizing: #shrinkWrap.
 	self
-		 addMorph: self makeControls;
 		 addMorph: self board;
+		 addMorph: self makeControls;
+		morphExtent: 500@500;
 		 newGame! !
 
 !FreeCell methodsFor: 'initialization' stamp: 'KenD 7/9/2020 14:18:32'!
@@ -896,17 +912,18 @@ makeCardsRemainingDisplay
 				morphExtent: 2 * 10 @ 15.
 	^ self wrapPanel: cardsRemainingDisplay label: 'Cards Left: ' translated! !
 
-!FreeCell methodsFor: 'initialization' stamp: 'KenD 7/9/2020 13:57:14'!
+!FreeCell methodsFor: 'initialization' stamp: 'KenD 7/11/2020 14:45:28'!
 makeControlBar
 
 	^AlignmentMorph newRow
-		color: self colorNearBottom;
+		color: self colorNearBottom; separation: 6;
 		"borderStyle: (BorderStyle inset width: 2);
 		layoutInset: 0;"
 		hResizing: #spaceFill; vResizing: #shrinkWrap; wrapCentering: #center; cellPositioning: #leftCenter;
+		layoutSpec: (LayoutSpec proportionalWidth: 1.0 fixedHeight: 40:: offAxisEdgeWeight: #center);
 		yourself.! !
 
-!FreeCell methodsFor: 'initialization' stamp: 'djp 10/24/1999 14:38'!
+!FreeCell methodsFor: 'initialization' stamp: 'KenD 7/11/2020 14:32:42'!
 makeControls
 
 	^self makeControlBar
@@ -1048,21 +1065,21 @@ resetBoard
 		addHardness;
 		changed.! !
 
-!FreeCellBoard methodsFor: 'initialization' stamp: 'djp 10/16/1999 20:06'!
+!FreeCellBoard methodsFor: 'initialization' stamp: 'KenD 7/11/2020 07:40:07'!
 resetFreeCells
 
-	freeCells do: [:deck | deck removeAllCards]! !
+	self freeCells do: [:deck | deck removeAllCards]! !
 
-!FreeCellBoard methodsFor: 'initialization' stamp: 'djp 10/16/1999 20:06'!
+!FreeCellBoard methodsFor: 'initialization' stamp: 'KenD 7/10/2020 07:39:59'!
 resetHomeCells
 
-	homeCells do: [:deck | deck removeAllCards]! !
+	self homeCells do: [:deck | deck removeAllCards]! !
 
-!FreeCellBoard methodsFor: 'initialization' stamp: 'djp 10/16/1999 20:06'!
+!FreeCellBoard methodsFor: 'initialization' stamp: 'KenD 7/11/2020 07:40:20'!
 resetStacks
 	| card stackStream stack |
 
-	stacks do: [:deck | deck removeAllCards].
+	self stacks do: [:deck | deck removeAllCards].
 	stackStream := ReadStream on: stacks.
 	[card := cardDeck deal.
 	card notNil] whileTrue: [
@@ -1076,12 +1093,12 @@ drawOn: aCanvas
 	"we don't have anything to draw, but we need a color so the inset border of one of our submorphs will work"
 ! !
 
-!FreeCellBoard methodsFor: 'card in a stack' stamp: 'KenD 7/8/2020 14:16:40'!
+!FreeCellBoard methodsFor: 'card in a stack' stamp: 'KenD 7/11/2020 07:43:31'!
 stack
 	^ PlayingCardDeck newRow color: Color transparent;
 	 layout: #stagger;
-	 listDirection: #topToBottom;
-	 enableDragNDrop;
+	" listDirection: #topToBottom;
+	 enableDragNDrop; "
 	 stackingPolicy: #altStraight;
 	 stackingOrder: #descending;
 	 emptyDropPolicy: #any;
@@ -1338,17 +1355,17 @@ inAutoMove
 
 	^ owner inAutoMove! !
 
-!FreeCellBoard methodsFor: 'layout' stamp: 'ar 11/20/2000 19:08'!
+!FreeCellBoard methodsFor: 'layout' stamp: 'KenD 7/11/2020 07:43:15'!
 cardCell
 
-	^PlayingCardDeck new
+	^PlayingCardDeck newRow
 		layout: #pile; 
-		listDirection: #topToBottom;
-		enableDragNDrop;
+		"listDirection: #topToBottom; "
+		"enableDragNDrop; @@@ @@@ @@@"
 		color: Color transparent;
 		borderColor: (Color gray alpha: 0.5);
 		borderWidth: 2;
-		layoutBounds: (0@0 extent: PlayingCardMorph width @ PlayingCardMorph height);
+		morphExtent: (PlayingCardMorph width @ PlayingCardMorph height);
 		yourself! !
 
 !FreeCellBoard methodsFor: 'layout' stamp: 'RAA 3/3/2000 23:33'!
@@ -1577,7 +1594,7 @@ color
 
 	^Color green darker! !
 
-!FreeCellStatistics methodsFor: 'user interface' stamp: 'asm 11/24/2003 22:55'!
+!FreeCellStatistics methodsFor: 'user interface' stamp: 'KenD 7/11/2020 14:46:58'!
 display
 	| panel |
 
@@ -1587,13 +1604,13 @@ display
 		wrapCentering: #center; cellPositioning: #topCenter;
 		hResizing: #rigid;
 		vResizing: #rigid;
-		extent: 250@150;
+		morphExtent: 250@150;
 		color: self color;
 		addMorphBack: self makeStatistics;
 		addMorphBack: self makeControls.
 	window := panel openInWindowLabeled: 'FreeCell Statistics' translated.! !
 
-!FreeCellStatistics methodsFor: 'user interface' stamp: 'mt 4/10/2018 10:59'!
+!FreeCellStatistics methodsFor: 'user interface' stamp: 'KenD 7/11/2020 14:48:02'!
 makeControls
 	| row |
 
@@ -1603,7 +1620,7 @@ makeControls
 		hResizing: #spaceFill;
 		vResizing: #shrinkWrap;
 		color: self color;
-		borderStyle: (BorderStyle inset width: 2);
+		"borderStyle: (BorderStyle inset width: 2);"
 		addMorphBack: self makeOkButton;
 		addMorphBack: self makeResetButton.
 	^row.! !
@@ -1626,7 +1643,7 @@ makeResetButton
 		label: 'Reset' translated
 		selector: #reset! !
 
-!FreeCellStatistics methodsFor: 'user interface' stamp: 'mt 4/10/2018 10:59'!
+!FreeCellStatistics methodsFor: 'user interface' stamp: 'KenD 7/11/2020 14:47:47'!
 makeStatistics
 	| row |
 
@@ -1636,11 +1653,11 @@ makeStatistics
 		hResizing: #spaceFill;
 		vResizing: #spaceFill;
 		color: self color;
-		borderStyle: (BorderStyle inset width: 2);
+		"borderStyle: (BorderStyle inset width: 2);"
 		addMorphBack: (AlignmentMorph newColumn
 			wrapCentering: #center; cellPositioning: #topCenter;
 			color: self color;
-			addMorph: (statsMorph := TextMorph new contents: self statsText)).
+			addMorph: (statsMorph := StringMorph new contents: self statsText)).
 	^row.! !
 
 !FreeCellStatistics methodsFor: 'user interface' stamp: 'djp 10/24/1999 19:04'!
