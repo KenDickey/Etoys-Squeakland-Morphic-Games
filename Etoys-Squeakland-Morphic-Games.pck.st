@@ -1,6 +1,6 @@
-'From Cuis 5.0 [latest update: #4241] on 11 July 2020 at 5:14:14 pm'!
+'From Cuis 5.0 [latest update: #4241] on 12 July 2020 at 8:10:31 am'!
 'Description Port of FreeCell from Squeak'!
-!provides: 'Etoys-Squeakland-Morphic-Games' 1 11!
+!provides: 'Etoys-Squeakland-Morphic-Games' 1 13!
 !requires: 'Cuis-Base' 50 4241 nil!
 !requires: 'SqueakCompatibility' 1 31 nil!
 !requires: 'Compression' 1 27 nil!
@@ -715,16 +715,9 @@ gameWon
 	elapsedTimeDisplay stop; highlighted: true; flash: true.
 	Statistics gameWon: self currentGame! !
 
-!FreeCell methodsFor: 'actions' stamp: 'asm 11/24/2003 22:49'!
+!FreeCell methodsFor: 'actions' stamp: 'KenD 7/12/2020 07:34:45'!
 help
-	| window helpMorph |
-	window := SystemWindow labelled: 'FreeCell Help' translated.
-	window model: self.
-	helpMorph := (PluggableTextMorph new editString: self helpText) lock.
-	window
-		addMorph: helpMorph
-		frame: (0 @ 0 extent: 1 @ 1).
-	window openInWorld! !
+	self inform:  self helpText! !
 
 !FreeCell methodsFor: 'actions' stamp: 'di 12/12/2000 13:08'!
 inAutoMove
@@ -757,23 +750,26 @@ pickGame
 	self newGameNumber: seed.
 	state := #pickGame! !
 
-!FreeCell methodsFor: 'actions' stamp: 'asm 11/24/2003 22:50'!
+!FreeCell methodsFor: 'actions' stamp: 'KenD 7/12/2020 08:10:30'!
 promptForSeed
-	| ss ii hh |
+	| ss ii hh  randomDefault |
+	randomDefault := Random withDefaultDo: [ :r | 1 + (r nextInteger: 32000 - 1) ].
 	[hh := board hardness
 				ifNil: [0].
-	ss := FillInTheBlank request: 'Pick a game number between 1 and 32000.
+	ss := StringRequestMorph request: 
+('Pick a game number between 1 and 32000.
 or
 set the hardness of the next game by typing ''H 30''.
 Above 100 is very hard.  Zero is standard game.
-Current hardness is: ' translated , hh printString.
-	"Let the user cancel."
-	ss isEmpty
-		ifTrue: [^ nil].
-	ss := ss withoutQuoting.
+Current hardness is: ' translated , hh printString)
+			initialAnswer: '0'
+			orCancel: [^board cardDeck seed].
+
+	ss := ss withBlanksTrimmed.
+	(ss size isZero) ifTrue: [^randomDefault].
 	ss first asLowercase == $h
 		ifTrue: ["Set the hardness"
-			[ii := ss numericSuffix]
+			[ii := (ss copyFrom: 2 to: ss size) asString asInteger]
 				on: Error
 				do: [ii := 0].
 			board hardness: ii.
