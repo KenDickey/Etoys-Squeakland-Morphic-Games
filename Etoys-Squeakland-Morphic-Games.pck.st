@@ -1,6 +1,6 @@
-'From Cuis 5.0 [latest update: #4241] on 11 July 2020 at 2:48:12 pm'!
+'From Cuis 5.0 [latest update: #4241] on 11 July 2020 at 5:09:30 pm'!
 'Description Port of FreeCell from Squeak'!
-!provides: 'Etoys-Squeakland-Morphic-Games' 1 9!
+!provides: 'Etoys-Squeakland-Morphic-Games' 1 10!
 !requires: 'Cuis-Base' 50 4241 nil!
 !requires: 'SqueakCompatibility' 1 31 nil!
 !requires: 'Compression' 1 27 nil!
@@ -331,6 +331,11 @@ hasCards
 
 	^self hasSubmorphs! !
 
+!PlayingCardDeck methodsFor: 'testing' stamp: 'KenD 7/11/2020 15:15:13'!
+isColumn
+
+	^ stackingPolicy = #altStraight! !
+
 !PlayingCardDeck methodsFor: 'testing' stamp: 'KenD 7/8/2020 14:10:21'!
 isEmpty
 
@@ -572,6 +577,29 @@ acceptDroppingMorph: aMorph event: evt
 					and: [cardDroppedSelector notNil])
 				ifTrue: [target perform: cardDroppedSelector]]
 		named: 'move card' translated! !
+
+!PlayingCardDeck methodsFor: 'layout' stamp: 'KenD 7/11/2020 16:35:01'!
+layoutSubmorphsVerticallyIn: layoutBounds
+	"Compute a new layout of submorphs based on the given layout bounds." 
+		"The Cards are overlapped by PixelsPerOverlap"
+		
+	| cardOffset |
+	
+	cardOffset := 0.
+	(self isColumn) ifTrue: [
+		(self submorphs reversed) do:
+			[ :m | m morphPosition: (2 @ cardOffset ).
+			  cardOffset := cardOffset + self pixelsPerOverlap ]
+	]
+	ifFalse: [super layoutSubmorphsVerticallyIn: layoutBounds]
+! !
+
+!PlayingCardDeck methodsFor: 'layout' stamp: 'KenD 7/11/2020 16:36:35'!
+minimumExtent
+	"We do our own column layout, so need to specify this"
+	^(self isColumn )
+		ifTrue: [   (PlayingCardMorph width + 4) @ (PlayingCardMorph height * 5)  ]
+		ifFalse: [ PlayingCardMorph width + 2 @ PlayingCardMorph height + 2 ]! !
 
 !PlayingCardDeck methodsFor: 'layout' stamp: 'djp 10/15/1999 11:25'!
 staggerOffset
@@ -886,7 +914,7 @@ defaultColor
 	"answer the default color/fill style for the receiver"
 	^ self colorNearTop! !
 
-!FreeCell methodsFor: 'initialization' stamp: 'KenD 7/11/2020 14:44:05'!
+!FreeCell methodsFor: 'initialization' stamp: 'KenD 7/11/2020 17:00:34'!
 initialize
 	"initialize the state of the receiver"
 	super initialize.
@@ -899,10 +927,9 @@ initialize
 	self vResizing: #shrinkWrap.
 	self hResizing: #shrinkWrap.
 	self
-		 addMorph: self board;
-		 addMorph: self makeControls;
-		morphExtent: 500@500;
-		 newGame! !
+		addMorph: self board;
+		addMorph: self makeControls;
+		newGame		 ! !
 
 !FreeCell methodsFor: 'initialization' stamp: 'KenD 7/9/2020 14:18:32'!
 makeCardsRemainingDisplay
@@ -1013,15 +1040,36 @@ initialize
 
 	Statistics := FreeCellStatistics new.! !
 
+!FreeCell class methodsFor: 'instance creation' stamp: 'KenD 7/11/2020 16:58:38'!
+newGame
+	| newSelf |
+	newSelf := self newColumn.
+	newSelf openInWorld.
+	newSelf morphExtent: newSelf minimumLayoutExtent.
+	^newSelf! !
+
 !FreeCellBoard methodsFor: 'initialization' stamp: 'dgd 2/14/2003 22:27'!
 defaultColor
 	"answer the default color/fill style for the receiver"
 	^ Color green! !
 
-!FreeCellBoard methodsFor: 'initialization' stamp: 'KenD 7/8/2020 14:14:49'!
+!FreeCellBoard methodsFor: 'initialization' stamp: 'KenD 7/11/2020 17:08:49'!
 initialize
-	"initialize the state of the receiver"
+	"I am a column with 2 rows"
+	| sparesRow columnsRow spacerMorph |
 	super initialize.
+	spacerMorph := RectangleLikeMorph new.
+	spacerMorph color: Color transparent; 
+			layoutSpec: (LayoutSpec fixedWidth: 20 proportionalHeight: 1.0).
+	sparesRow := LayoutMorph newRow :: axisEdgeWeight: #center; color: Color green; separation: 6.
+	sparesRow layoutSpec: (LayoutSpec  fixedWidth: PlayingCardMorph width + 4 * 8
+						fixedHeight: PlayingCardMorph height + 8).
+	self freeCells do: [ :spare | sparesRow addMorph: spare ].
+	sparesRow addMorph: spacerMorph.
+	self homeCells do: [ :pile | sparesRow addMorph: pile ].
+	columnsRow := LayoutMorph newRow :: axisEdgeWeight: #center; color: Color green; separation: 8.
+	columnsRow layoutSpec: (LayoutSpec  proportionalWidth: 1.0 fixedHeight: (PlayingCardMorph height * 4)).
+	self stacks do: [ :column | columnsRow addMorph: column ].
 	""
 "	self listDirection: #topToBottom;
 	  hResizing: #shrinkWrap;
@@ -1029,7 +1077,11 @@ initialize
 	  height: 500;
 	  layout
 "
-	self morphHeight: 500! !
+	^self 
+		addMorph: sparesRow ;
+		addMorph: columnsRow ;
+		morphExtent: (PlayingCardMorph width + 4 * 8 @ PlayingCardMorph height * 5);
+		yourself! !
 
 !FreeCellBoard methodsFor: 'initialization' stamp: 'ul 3/13/2017 00:18'!
 pickGame: aSeedOrNil 
@@ -1093,9 +1145,9 @@ drawOn: aCanvas
 	"we don't have anything to draw, but we need a color so the inset border of one of our submorphs will work"
 ! !
 
-!FreeCellBoard methodsFor: 'card in a stack' stamp: 'KenD 7/11/2020 07:43:31'!
+!FreeCellBoard methodsFor: 'card in a stack' stamp: 'KenD 7/11/2020 15:06:50'!
 stack
-	^ PlayingCardDeck newRow color: Color transparent;
+	^ PlayingCardDeck newColumn color: Color transparent;
 	 layout: #stagger;
 	" listDirection: #topToBottom;
 	 enableDragNDrop; "
@@ -1428,9 +1480,9 @@ homeCells
 
 	^homeCells ifNil: [homeCells := (1 to: 4) collect: [:i | self homeCell]]! !
 
-!FreeCellBoard methodsFor: 'layout' stamp: 'djp 10/11/1999 18:27'!
+!FreeCellBoard methodsFor: 'layout' stamp: 'KenD 7/11/2020 15:32:02'!
 layout
-
+	"@@@ No SENDERS see #initialize @@@"
 	self 
 		addMorphBack: self cellsRow;
 		addMorphBack: self stacksRow.
