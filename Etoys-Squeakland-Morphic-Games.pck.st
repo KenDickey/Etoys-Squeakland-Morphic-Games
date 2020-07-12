@@ -1,6 +1,6 @@
-'From Cuis 5.0 [latest update: #4241] on 11 July 2020 at 5:09:30 pm'!
+'From Cuis 5.0 [latest update: #4241] on 11 July 2020 at 5:14:14 pm'!
 'Description Port of FreeCell from Squeak'!
-!provides: 'Etoys-Squeakland-Morphic-Games' 1 10!
+!provides: 'Etoys-Squeakland-Morphic-Games' 1 11!
 !requires: 'Cuis-Base' 50 4241 nil!
 !requires: 'SqueakCompatibility' 1 31 nil!
 !requires: 'Compression' 1 27 nil!
@@ -269,6 +269,11 @@ initializeFromPNG
 	FormsArray 
 		at: 53 
 		put: ((Form fromFileNamed: (imageDirNamePrefix , 'back.png')) asFormOfDepth: 32)! !
+
+!PlayingCardMorph class methodsFor: 'new-morph participation' stamp: 'KenD 7/11/2020 17:14:44'!
+includeInNewMorphMenu
+
+	^false! !
 
 !PlayingCardMorph class methodsFor: 'access' stamp: 'KenD 7/7/2020 13:19:46'!
 cardSize
@@ -1047,6 +1052,11 @@ newGame
 	newSelf openInWorld.
 	newSelf morphExtent: newSelf minimumLayoutExtent.
 	^newSelf! !
+
+!FreeCell class methodsFor: 'new-morph participation' stamp: 'KenD 7/11/2020 17:13:50'!
+includeInNewMorphMenu
+
+	^false! !
 
 !FreeCellBoard methodsFor: 'initialization' stamp: 'dgd 2/14/2003 22:27'!
 defaultColor
