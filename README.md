@@ -27,7 +27,7 @@ Feature require: 'Etoys-Squeakland-Morphic-Games'.
 ````
 
 ### Porting Notes
-=======
+
 Cuis does much work with less code and is evolving toward scalable graphics, so there are notable differences with Squeak.
 
 - Morph position is relative to container not to upper left screen point.
